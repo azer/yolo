@@ -122,7 +122,7 @@ socket.onmessage = function (e) {
 
   if (parsed.done && parsed.stderr) {
     document.body.className = "error"
-    tdocument.querySelector('.stderr').innerHTML = parsed.stderr.split('\n').join('<br />')
+    document.querySelector('.stderr').innerHTML = parsed.stderr.split('\n').join('<br />')
   } else if (parsed.done) {
     document.body.className = "success"
   }
