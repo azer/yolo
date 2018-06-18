@@ -1,11 +1,13 @@
 # yolo
 
-File watcher with web interface, so you can instantly see the output.
+A file watcher with web based user interface, so you can see the status of your build (and error output, if any) instantly.
+
+![](https://cldup.com/G0VmmMWMnz.gif)
 
 Usage example:
 
 ```bash
-$ yolo -w *.go -c 'go build' # You can now open up localhost:9975 and watch the build progress.
+$ yolo -i *.go -c 'go build' # You can now open up localhost:8080 and watch the build progress.
 ```
 
 # Install
