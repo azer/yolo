@@ -18,5 +18,5 @@ $ go get github.com/azer/yolo
 
 # Todo
 
-[ ] Add debouncing
-[ ] Output stdout, too
+- [ ] Add debouncing
+- [ ] Output stdout, too
