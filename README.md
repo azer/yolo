@@ -7,7 +7,7 @@ A file watcher with web based user interface, so you can see the status of your 
 Usage example:
 
 ```bash
-$ yolo -i *.go -c 'go build' # You can now open up localhost:8080 and watch the build progress.
+$ yolo -i *.go -c 'go build' -a localhost:8080
 ```
 
 # Install
