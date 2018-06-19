@@ -18,8 +18,9 @@ $ go get github.com/azer/yolo
 
 # Todo
 
+- [ ] Impl exclude
 - [ ] Add debouncing
-- [ ] Output stdout
+- [ ] Redirect stdout
 - [ ] Add option for reading error messages from stdout
 - [ ] Show help when no command is provided
 - [ ] Split JS to another endpoint so it can be included by other pages
