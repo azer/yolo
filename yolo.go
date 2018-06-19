@@ -147,15 +147,17 @@ socket.onmessage = function (e) {
   console.log('Message received', parsed)
 
   if (parsed.started) {
-    document.title = 'Building...'
+    document.title = 'Building... - Yolo'
     document.body.className = "busy"
     document.querySelector(".command").innerHTML = parsed.command;
   }
 
   if (parsed.done && parsed.stderr) {
+    document.title = 'Error - Yolo'
     document.body.className = "error"
     document.querySelector('.stderr').innerHTML = parsed.stderr.split('\n').join('<br />')
   } else if (parsed.done) {
+    document.title = 'Done - Yolo'
     document.body.className = "success"
   }
 };
