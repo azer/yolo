@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/azer/yolo/src"
 	"net/http"
+	"os"
 	"text/template"
+	"time"
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 
 	flag.Parse()
 
-	if len(include) == 0 {
+	if len(include) == 0 || len(*command) == 0 {
 		flag.PrintDefaults()
 		return
 	}
@@ -33,35 +35,53 @@ func main() {
 	}
 
 	if len(*addr) > 0 {
-		go yolo.WebServer(*addr, WebInterface, OnMessage)
+		go yolo.WebServer(*addr, WebInterface(*addr), OnMessage)
 	}
 
+	var (
+		timer *time.Timer
+	)
+
 	watch.Start(func(event *yolo.WatchEvent) {
-		msg := &struct {
-			Started bool   `json:"started"`
-			Done    bool   `json:"done"`
-			Command string `json:"command"`
-			Stdout  string `json:"stdout"`
-			Stderr  string `json:"stderr"`
-		}{true, false, *command, "", ""}
-
-		started, _ := json.Marshal(msg)
-
-		yolo.SendMessage(started)
-
-		stdout, stderr, err := yolo.ExecuteCommand(*command)
-
-		msg.Done = true
-		msg.Stdout = stdout
-		msg.Stderr = stderr
-
-		done, _ := json.Marshal(msg)
-
-		yolo.SendMessage(done)
-
-		if err != nil {
-			fmt.Println(stderr)
+		if timer != nil {
+			timer.Stop()
+			timer = nil
 		}
+
+		timer = time.NewTimer(time.Millisecond * 300)
+
+		go func() {
+			if timer != nil {
+				<-timer.C
+				timer = nil
+			}
+
+			msg := &struct {
+				Started bool   `json:"started"`
+				Done    bool   `json:"done"`
+				Command string `json:"command"`
+				Stdout  string `json:"stdout"`
+				Stderr  string `json:"stderr"`
+			}{true, false, *command, "", ""}
+
+			started, _ := json.Marshal(msg)
+
+			yolo.SendMessage(started)
+
+			stdout, stderr, err := yolo.ExecuteCommand(*command)
+
+			msg.Done = true
+			msg.Stdout = stdout
+			msg.Stderr = stderr
+
+			done, _ := json.Marshal(msg)
+
+			yolo.SendMessage(done)
+
+			if err != nil {
+				fmt.Fprintf(os.Stderr, stderr)
+			}
+		}()
 	})
 }
 
@@ -69,13 +89,15 @@ func OnMessage(msg string) {
 	fmt.Println("Received %v", string(msg))
 }
 
-func WebInterface(w http.ResponseWriter, r *http.Request) {
-	homepage := template.Must(template.New("homepage").Parse(html))
+func WebInterface(addr string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		homepage := template.Must(template.New("homepage").Parse(html))
 
-	homepage.Execute(w, map[string]string{
-		"CSS":  css,
-		"ADDR": "localhost:8080",
-	})
+		homepage.Execute(w, map[string]string{
+			"CSS":  css,
+			"ADDR": addr,
+		})
+	}
 }
 
 const html = `<!DOCTYPE html>
@@ -107,7 +129,9 @@ const html = `<!DOCTYPE html>
   </div>
   <div class="connection"></div>
   <script type="text/javascript">
-var socket = new WebSocket("ws://{{.ADDR}}/socket");
+var addr = "{{.ADDR}}"
+if (addr[0] == ":") addr = "localhost" + addr
+var socket = new WebSocket("ws://"+addr+"/socket");
 
 socket.onopen = function () {
   document.querySelector('.connection').innerHTML = "Connected";
