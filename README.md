@@ -15,3 +15,8 @@ $ yolo -i *.go -c 'go build' # You can now open up localhost:8080 and watch the 
 ```bash
 $ go get github.com/azer/yolo
 ```
+
+# Todo
+
+[ ] Add debouncing
+[ ] Output stdout, too
