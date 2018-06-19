@@ -19,4 +19,6 @@ $ go get github.com/azer/yolo
 # Todo
 
 - [ ] Add debouncing
-- [ ] Output stdout, too
+- [ ] Output stdout
+- [ ] Add option for reading error messages from stdout
+- [ ] Show help when no command is provided
