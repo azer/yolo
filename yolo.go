@@ -15,18 +15,26 @@ func main() {
 		exclude yolo.Patterns
 	)
 
-	flag.Var(&include, "i", "Glob pattern to watch for changes")
-	flag.Var(&exclude, "e", "Glob pattern to ignore")
+	flag.Var(&include, "i", "Glob pattern to include files for watching")
+	flag.Var(&exclude, "e", "Glob pattern to exclude from watching")
 	command := flag.String("c", "", "Command to execute on change")
+	addr := flag.String("a", "", "Host and port to run the web server on")
 
 	flag.Parse()
+
+	if len(include) == 0 {
+		flag.PrintDefaults()
+		return
+	}
 
 	watch, err := yolo.NewWatch(&include, &exclude)
 	if err != nil {
 		panic(err)
 	}
 
-	go yolo.WebServer(":8080", WebInterface, OnMessage)
+	if len(*addr) > 0 {
+		go yolo.WebServer(*addr, WebInterface, OnMessage)
+	}
 
 	watch.Start(func(event *yolo.WatchEvent) {
 		msg := &struct {

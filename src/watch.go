@@ -84,6 +84,27 @@ func (watch *Watch) AddRecursively(root string) error {
 	return nil
 }
 
+func (watch *Watch) RemoveRecursively(root string) error {
+	fileInfo, err := os.Stat(root)
+	if err != nil {
+		return err
+	}
+
+	if !fileInfo.IsDir() {
+		return watch.Remove(root)
+	}
+
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err == nil && info.IsDir() {
+			watch.Remove(path)
+		}
+
+		return nil
+	})
+
+	return nil
+}
+
 func (watch Watch) Start(callback func(*WatchEvent)) {
 	defer watch.Watcher.Close()
 
@@ -92,6 +113,10 @@ func (watch Watch) Start(callback func(*WatchEvent)) {
 		for {
 			select {
 			case event := <-watch.Watcher.Events:
+				if watch.Exclude.Has(event.Name) {
+					continue
+				}
+
 				we := &WatchEvent{
 					Filename: event.Name,
 					Create:   event.Op == fsnotify.Create,
