@@ -24,4 +24,4 @@ $ go get github.com/azer/yolo
 - [ ] Show help when no command is provided
 - [ ] Split JS to another endpoint so it can be included by other pages
 - [ ] How could it be used for viewing web pages / apps ? 
-- [ ] 
+- [ ] How could output be processed ? 
