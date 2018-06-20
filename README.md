@@ -18,6 +18,7 @@ $ go get github.com/azer/yolo
 
 # Todo
 
+- [ ] Show last build status
 - [ ] Escape characters
 - [ ] Add option for reading error messages from stdout
 - [ ] Output the name of changed file
