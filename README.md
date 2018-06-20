@@ -19,6 +19,8 @@ $ go get github.com/azer/yolo
 # Todo
 
 - [ ] Add option for reading error messages from stdout
+- [ ] Output the name of changed file
+- [ ] Reconnect
 - [ ] Split JS to another endpoint so it can be included by other pages
 - [ ] How could it be used for viewing web pages / apps ?
 - [ ] How could output be processed ?
