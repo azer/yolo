@@ -18,6 +18,7 @@ $ go get github.com/azer/yolo
 
 # Todo
 
+- [ ] Read filenames from another file. So we could do `yolo -f index.html` and get live updates.
 - [ ] Show last build status
 - [ ] Escape characters
 - [ ] Add option for reading error messages from stdout
