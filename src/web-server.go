@@ -37,6 +37,7 @@ func SendMessage(content []byte) error {
 		return nil
 	}
 
+	log.Info("Send message to browser", string(content))
 	if err := conn.WriteMessage(websocket.TextMessage, content); err != nil {
 		return err
 	}

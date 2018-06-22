@@ -40,6 +40,10 @@ type Watch struct {
 }
 
 func (watch *Watch) Add(path string) error {
+	if watch.Exclude.Has(path) {
+		return nil
+	}
+
 	log.Info("Watching %s", path)
 
 	if err := watch.Watcher.Add(path); err != nil {
@@ -64,6 +68,10 @@ func (watch *Watch) Remove(path string) error {
 }
 
 func (watch *Watch) AddRecursively(root string) error {
+	if watch.Exclude.Has(root) {
+		return nil
+	}
+
 	fileInfo, err := os.Stat(root)
 	if err != nil {
 		return err

@@ -1,14 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/azer/yolo/src"
 	"net/http"
-	"os"
 	"text/template"
-	"time"
 )
 
 func main() {
@@ -38,51 +35,7 @@ func main() {
 		go yolo.WebServer(*addr, WebInterface(*addr), OnMessage)
 	}
 
-	var (
-		timer *time.Timer
-	)
-
-	watch.Start(func(event *yolo.WatchEvent) {
-		if timer != nil {
-			timer.Stop()
-			timer = nil
-		}
-
-		timer = time.NewTimer(time.Millisecond * 300)
-
-		go func() {
-			if timer != nil {
-				<-timer.C
-				timer = nil
-			}
-
-			msg := &struct {
-				Started bool   `json:"started"`
-				Done    bool   `json:"done"`
-				Command string `json:"command"`
-				Stdout  string `json:"stdout"`
-				Stderr  string `json:"stderr"`
-			}{true, false, *command, "", ""}
-
-			started, _ := json.Marshal(msg)
-
-			yolo.SendMessage(started)
-
-			stdout, stderr, err := yolo.ExecuteCommand(*command)
-
-			msg.Done = true
-			msg.Stdout = stdout
-			msg.Stderr = stderr
-
-			done, _ := json.Marshal(msg)
-
-			yolo.SendMessage(done)
-
-			if err != nil {
-				fmt.Fprintf(os.Stderr, stderr)
-			}
-		}()
-	})
+	watch.Start(yolo.RunOnChange(*command))
 }
 
 func OnMessage(msg string) {
