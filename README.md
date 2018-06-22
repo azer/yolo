@@ -10,6 +10,12 @@ Usage example:
 $ yolo -i *.go -c 'go build' -a localhost:8080
 ```
 
+It's silent by default. You can enable internal logging by;
+
+```bash
+$ LOG=* yolo ...
+```
+
 # Install
 
 ```bash
