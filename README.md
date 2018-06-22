@@ -24,7 +24,7 @@ $ go get github.com/azer/yolo
 
 # Todo
 
-- [ ] Socket needs to be refactored to handle :/
+- [ ] Socket needs to be refactored to handle multiple connections :/
 - [ ] Rely on exit code instead of stderr ? 
 - [ ] Read filenames from another file. So we could do `yolo -f index.html` and get live updates when dependencies change.
 - [ ] Show last build status
