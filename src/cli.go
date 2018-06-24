@@ -2,29 +2,54 @@ package yolo
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"os/exec"
 )
 
 func ExecuteCommand(command string) (string, string, error) {
 	var (
-		stdout bytes.Buffer
-		stderr bytes.Buffer
+		stdoutBuf, stderrBuf bytes.Buffer
 	)
 
 	cmd := exec.Command("sh", "-c", command)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
 
-	log.Info("Executing %s", command)
-	if err := cmd.Run(); err != nil {
-		log.Info("Failed '%s'", command)
-		return stdout.String(), stderr.String(), err
+	stdoutIn, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", "", err
 	}
 
-	log.Info("Done '%s'", command)
+	stderrIn, err := cmd.StderrPipe()
+	if err != nil {
+		return "", "", err
+	}
 
-	return stdout.String(), stderr.String(), nil
+	var errStdout, errStderr error
+	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
+	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
+
+	err := cmd.Start()
+	if err != nil {
+		return "", "", err
+	}
+
+	go func() {
+		_, errStdout = io.Copy(stdout, stdoutIn)
+	}()
+
+	go func() {
+		_, errStderr = io.Copy(stderr, stderrIn)
+	}()
+
+	err = cmd.Wait()
+	if err != nil {
+		return "", "", err
+	}
+
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+
+	return outStr, errStr, nil
+
 }
 
 func CurrentGitBranch() string {
