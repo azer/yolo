@@ -17,11 +17,11 @@ func ExecuteCommand(command string) (string, string, error) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	log.Info("Done '%s'", command)
-
 	if err := cmd.Run(); err != nil {
 		return stdout.String(), stderr.String(), err
 	}
+
+	log.Info("Done '%s'", command)
 
 	return stdout.String(), stderr.String(), nil
 }

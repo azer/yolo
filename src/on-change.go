@@ -40,7 +40,7 @@ func DebounceExecution(command string) {
 
 	SendMessage(started)
 
-	log.Info("exec")
+	log.Info("exec ")
 	stdout, stderr, err := ExecuteCommand(command)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, stderr)

@@ -39,7 +39,7 @@ func main() {
 }
 
 func OnMessage(msg string) {
-	fmt.Println("Received %v", string(msg))
+	fmt.Println("Received", string(msg))
 }
 
 func WebInterface(addr string) func(http.ResponseWriter, *http.Request) {
