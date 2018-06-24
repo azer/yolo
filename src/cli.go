@@ -28,8 +28,7 @@ func ExecuteCommand(command string) (string, string, error) {
 	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
 	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
 
-	err := cmd.Start()
-	if err != nil {
+	if err := cmd.Start(); err != nil {
 		return "", "", err
 	}
 
@@ -41,8 +40,7 @@ func ExecuteCommand(command string) (string, string, error) {
 		_, errStderr = io.Copy(stderr, stderrIn)
 	}()
 
-	err = cmd.Wait()
-	if err != nil {
+	if err := cmd.Wait(); err != nil {
 		return "", "", err
 	}
 
