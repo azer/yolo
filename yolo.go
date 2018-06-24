@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"github.com/azer/yolo/src"
 	"net/http"
 	"text/template"
+
+	"github.com/azer/yolo/src"
 )
 
 func main() {
@@ -31,15 +31,13 @@ func main() {
 		panic(err)
 	}
 
+	build := yolo.NewBuild(*command)
+
 	if len(*addr) > 0 {
-		go yolo.WebServer(*addr, WebInterface(*addr), OnMessage)
+		go yolo.WebServer(build, *addr, WebInterface(*addr))
 	}
 
-	watch.Start(yolo.RunOnChange(*command))
-}
-
-func OnMessage(msg string) {
-	fmt.Println("Received", string(msg))
+	watch.Start(yolo.RunOnChange(build))
 }
 
 func WebInterface(addr string) func(http.ResponseWriter, *http.Request) {
@@ -80,7 +78,12 @@ const html = `<!DOCTYPE html>
     <h1>Done</h1>
     <h2>Built completed successfully.</h2>
   </div>
-  <div class="connection"></div>
+  <div class="info">
+    <div class="wd"></div>
+    <div class="git-w">* <span class="git"></span></div>
+    <div class="command-w">$ <span class="command"></span></div>
+    <div class="connection"></div>
+  </div>
   <script type="text/javascript">
 var reconnectInterval = 1000
 var addr = "{{.ADDR}}"
@@ -90,14 +93,15 @@ open()
 
 function open () {
   var conn = new WebSocket("ws://" + (addr[0] == ":" ? "localhost" + addr : addr) + "/socket");
-  conn.onopen = onOpen
+  conn.onopen = onOpen.bind(null, conn)
   conn.onclose = onClose
   conn.onmessage = onMessage
   return conn
 }
 
-function onOpen () {
+function onOpen (conn) {
   document.querySelector('.connection').innerHTML = "Connected";
+  conn.send("ping")
 };
 
 function onClose () {
@@ -110,16 +114,20 @@ function onMessage (e) {
 
   console.log('Message received', parsed)
 
+  document.querySelectorAll(".command").forEach(el => el.innerHTML = parsed.command)
+  document.querySelectorAll(".wd").forEach(el => el.innerHTML = parsed.working_dir)
+  document.querySelectorAll(".git").forEach(el => el.innerHTML = parsed.git_branch)
+
   if (parsed.started) {
     document.title = 'Building... - Yolo'
     document.body.className = "busy"
     document.querySelector(".command").innerHTML = parsed.command;
   }
 
-  if (parsed.done && parsed.stderr) {
+  if (parsed.done && parsed.failed) {
     document.title = 'Error - Yolo'
     document.body.className = "error"
-    document.querySelector('.stderr').innerHTML = parsed.stderr.split('\n').join('<br />')
+     document.querySelector('.stderr').innerHTML = (parsed.stderr || parsed.stdout).split('\n').join('<br />')
   } else if (parsed.done) {
     document.title = 'Done - Yolo'
     document.body.className = "success"
@@ -195,13 +203,41 @@ h2 {
   display: none;
 }
 
-.connection {
+.info {
+  box-sizing: border-box;
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  color: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-column-gap: 10px;
+  justify-items: stretch;
+  align-items: stretch;
+
+
   text-transform: uppercase;
   font: 14px "Menlo", "Inconsolata", "Fira Mono", "Noto Mono", "Droid Sans Mono", "Consolas", "monaco" , "monospace";
+  padding: 20px 0;
+
+  text-align: center;
+}
+
+.info div {
+  border-right: 1px dotted rgba(255, 255, 255, 0.7);
+}
+
+.info div:last-child {
+  border-right: 0;
+}
+
+.info * {
+  text-shadow: 1px 2px rgba(0,0,0, 0.1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body.busy .ready-container, body.success .ready-container, body.error .ready-container {

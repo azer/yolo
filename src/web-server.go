@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	open     = []*websocket.Conn{}
 	rw       sync.RWMutex
+	open     = []*websocket.Conn{}
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 )
 
-func CreateWebSocket(onMessage func(string)) func(http.ResponseWriter, *http.Request) {
+func CreateWebSocket(build *Build) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, _ := upgrader.Upgrade(w, r, nil)
 
@@ -35,7 +35,16 @@ func CreateWebSocket(onMessage func(string)) func(http.ResponseWriter, *http.Req
 				break
 			}
 
-			go onMessage(string(msg))
+			if string(msg) == "ping" {
+				pong, err := build.Message()
+				if err != nil {
+					panic(err)
+				}
+
+				if err := conn.WriteMessage(websocket.TextMessage, pong); err != nil {
+					panic(err)
+				}
+			}
 
 		}
 
@@ -47,7 +56,7 @@ func CreateWebSocket(onMessage func(string)) func(http.ResponseWriter, *http.Req
 	}
 }
 
-func SendMessage(content []byte) error {
+func DistributeMessage(content []byte) error {
 	log.Info("Send message to browser %s", string(content))
 
 	if len(content) == 0 {
@@ -55,16 +64,14 @@ func SendMessage(content []byte) error {
 	}
 
 	for _, conn := range open {
-		if err := conn.WriteMessage(websocket.TextMessage, content); err != nil {
-			return err
-		}
+		conn.WriteMessage(websocket.TextMessage, content)
 	}
 
 	return nil
 }
 
-func WebServer(addr string, webInterface func(http.ResponseWriter, *http.Request), onMessage func(string)) {
-	http.HandleFunc("/socket", CreateWebSocket(onMessage))
+func WebServer(build *Build, addr string, webInterface func(http.ResponseWriter, *http.Request)) {
+	http.HandleFunc("/socket", CreateWebSocket(build))
 	http.HandleFunc("/", webInterface)
 	http.ListenAndServe(addr, nil)
 }

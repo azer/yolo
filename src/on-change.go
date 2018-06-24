@@ -1,15 +1,12 @@
 package yolo
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
 	"time"
 )
 
 var timer *time.Timer
 
-func RunOnChange(command string) func(*WatchEvent) {
+func RunOnChange(build *Build) func(*WatchEvent) {
 	return func(event *WatchEvent) {
 		if timer != nil {
 			timer.Stop()
@@ -18,41 +15,20 @@ func RunOnChange(command string) func(*WatchEvent) {
 
 		timer = time.NewTimer(time.Millisecond * 2000)
 
-		go DebounceExecution(command)
+		go DebounceExecution(build)
 	}
 }
 
-func DebounceExecution(command string) {
+func DebounceExecution(build *Build) {
 	if timer != nil {
 		<-timer.C
 		timer = nil
 	}
 
-	msg := &struct {
-		Started bool   `json:"started"`
-		Done    bool   `json:"done"`
-		Command string `json:"command"`
-		Stdout  string `json:"stdout"`
-		Stderr  string `json:"stderr"`
-	}{true, false, command, "", ""}
+	build.Reset()
+	build.Started = true
 
-	started, _ := json.Marshal(msg)
-
-	SendMessage(started)
-
-	log.Info("exec ")
-	stdout, stderr, err := ExecuteCommand(command)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, stderr)
-	}
-
-	log.Info("!exec %s", stderr)
-
-	msg.Done = true
-	msg.Stdout = stdout
-	msg.Stderr = stderr
-
-	done, _ := json.Marshal(msg)
-
-	SendMessage(done)
+	build.Distribute()
+	build.Execute()
+	build.Distribute()
 }
