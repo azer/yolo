@@ -124,7 +124,7 @@ function onMessage (e) {
     document.querySelector(".command").innerHTML = parsed.command;
   }
 
-  if (parsed.done && parsed.failed) {
+  if (parsed.done && (parsed.failed || parsed.stderr)) {
     document.title = 'Error - Yolo'
     document.body.className = "error"
      document.querySelector('.stderr').innerHTML = (parsed.stderr || parsed.stdout).split('\n').join('<br />')
