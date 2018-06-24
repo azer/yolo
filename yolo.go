@@ -82,19 +82,30 @@ const html = `<!DOCTYPE html>
   </div>
   <div class="connection"></div>
   <script type="text/javascript">
+var reconnectInterval = 1000
 var addr = "{{.ADDR}}"
-if (addr[0] == ":") addr = "localhost" + addr
-var socket = new WebSocket("ws://"+addr+"/socket");
+var socket;
 
-socket.onopen = function () {
+open()
+
+function open () {
+  var conn = new WebSocket("ws://" + (addr[0] == ":" ? "localhost" + addr : addr) + "/socket");
+  conn.onopen = onOpen
+  conn.onclose = onClose
+  conn.onmessage = onMessage
+  return conn
+}
+
+function onOpen () {
   document.querySelector('.connection').innerHTML = "Connected";
 };
 
-socket.onclose = function () {
+function onClose () {
   document.querySelector('.connection').innerHTML = "";
+  setTimeout(reconnect, reconnectInterval)
 };
 
-socket.onmessage = function (e) {
+function onMessage (e) {
   const parsed = JSON.parse(e.data)
 
   console.log('Message received', parsed)
@@ -117,6 +128,12 @@ socket.onmessage = function (e) {
 
 function send(msg) {
   socket.send(msg);
+}
+
+function reconnect() {
+  console.log('Reconnecting...')
+  socket = open()
+  reconnectInterval += 250
 }
 </script>
 </body>
