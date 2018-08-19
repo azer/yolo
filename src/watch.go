@@ -121,7 +121,7 @@ func (watch Watch) Start(callback func(*WatchEvent)) {
 		for {
 			select {
 			case event := <-watch.Watcher.Events:
-				if watch.Exclude.Has(event.Name) {
+				if watch.Exclude.Has(event.Name) || strings.HasSuffix(event.Name, ".swp") {
 					continue
 				}
 
