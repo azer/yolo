@@ -20,6 +20,11 @@ func RunOnChange(build *Build) func(*WatchEvent) {
 }
 
 func DebounceExecution(build *Build) {
+	if (build.Started && !build.Done) {
+		log.Info("Event ignored due to executing build")
+		return
+	}
+	
 	if timer != nil {
 		<-timer.C
 		timer = nil
