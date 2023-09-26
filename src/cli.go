@@ -24,7 +24,6 @@ func ExecuteCommand(command string) (string, string, error) {
 		return "", "", err
 	}
 
-	var errStdout, errStderr error
 	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
 	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
 
@@ -33,11 +32,11 @@ func ExecuteCommand(command string) (string, string, error) {
 	}
 
 	go func() {
-		_, errStdout = io.Copy(stdout, stdoutIn)
+		_, _ = io.Copy(stdout, stdoutIn)
 	}()
 
 	go func() {
-		_, errStderr = io.Copy(stderr, stderrIn)
+		_, _ = io.Copy(stderr, stderrIn)
 	}()
 
 	if err := cmd.Wait(); err != nil {
@@ -47,7 +46,6 @@ func ExecuteCommand(command string) (string, string, error) {
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
 	return outStr, errStr, nil
-
 }
 
 func CurrentGitBranch() string {
